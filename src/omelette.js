@@ -58,11 +58,6 @@ class Omelette extends events_1.EventEmitter {
     constructor() {
         super();
         this.asyncs = 0;
-        this.program = '';
-        this.programs = [];
-        this.fragments = [];
-        this.shell = '';
-        this.asyncs = 0;
         this.compgen = process.argv.indexOf("--compgen");
         this.install = process.argv.indexOf("--completion") > -1;
         this.installFish = process.argv.indexOf("--completion-fish") > -1;
@@ -114,14 +109,13 @@ class Omelette extends events_1.EventEmitter {
         };
         if (words instanceof Promise) {
             return words.then(writer);
-        }
-        else {
+        } else {
             return writer(words);
         }
     }
     next(handler) {
         if (typeof handler === 'function') {
-            this.mainProgram = handler;
+            return this.mainProgram = handler;
         }
     }
     tree(objectTree = {}) {
@@ -185,11 +179,11 @@ class Omelette extends events_1.EventEmitter {
     checkInstall() {
         if (this.install) {
             console.log(this.generateCompletionCode());
-            return process.exit();
+            process.exit();
         }
         if (this.installFish) {
             console.log(this.generateCompletionCodeFish());
-            return process.exit();
+            process.exit();
         }
     }
     getActiveShell() {
@@ -198,14 +192,11 @@ class Omelette extends events_1.EventEmitter {
         }
         if (this.SHELL.match(/bash/)) {
             return 'bash';
-        }
-        else if (this.SHELL.match(/zsh/)) {
+        } else if (this.SHELL.match(/zsh/)) {
             return 'zsh';
-        }
-        else if (this.SHELL.match(/fish/)) {
+        } else if (this.SHELL.match(/fish/)) {
             return 'fish';
-        }
-        else {
+        } else {
             throw new Error(`Unsupported shell: ${this.SHELL}`);
         }
     }
@@ -241,7 +232,6 @@ class Omelette extends events_1.EventEmitter {
         if (command) {
             return `\n# begin ${this.program} completion\n${command}\n# end ${this.program} completion\n`;
         }
-        return '';
     }
     setupShellInitFile(initFile = this.getDefaultShellInitFile()) {
         // @shell might be undefined if an `initFile` was passed
@@ -287,8 +277,7 @@ class Omelette extends events_1.EventEmitter {
     init() {
         if (this.compgen > -1) {
             return this.generate();
-        }
-        else {
+        } else {
             return this.mainProgram();
         }
     }
@@ -308,24 +297,21 @@ function omelette(template, ...args) {
     if (template instanceof Array && args.length > 0) {
         [program, callbacks] = [template[0].trim(), args];
         fragments = callbacks.map((callback, index) => `arg${index}`);
-    }
-    else {
+    } else {
         [program, ...fragments] = template.split(/\s+/);
         callbacks = [];
     }
     fragments = fragments.map((fragment) => fragment.replace(/^\<+|\>+$/g, ''));
     const _omelette = new Omelette();
     _omelette.setProgram(program);
-    // Use type assertion to satisfy the compiler
-    _omelette.setFragments.apply(_omelette, fragments);
+    _omelette.setFragments(...fragments);
     _omelette.checkInstall();
     for (let index = 0; index < callbacks.length; index++) {
         const callback = callbacks[index];
         const fragment = `arg${index}`;
-        ((callback) => {
-            return _omelette.on(fragment, function (data) {
-                const result = callback instanceof Array ? callback : callback(data);
-                return this.reply(result || []);
+        (function (callback) {
+            return _omelette.on(fragment, function (...args) {
+                return this.reply((callback instanceof Array ? callback : callback(...args)));
             });
         })(callback);
     }

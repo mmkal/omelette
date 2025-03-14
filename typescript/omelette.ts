@@ -64,7 +64,7 @@ declare namespace omelette {
 
 
 class Omelette extends EventEmitter<any> {
-  asyncs: number = 0;
+  asyncs: number;
   compgen: number;
   install: boolean;
   installFish: boolean;
@@ -75,10 +75,10 @@ class Omelette extends EventEmitter<any> {
   HOME: string;
   SHELL: string | undefined;
   platform: string;
-  program: string = '';
-  programs: string[] = [];
-  fragments: string[] = [];
-  shell: string = '';
+  program!: string;
+  programs!: string[];
+  fragments!: string[];
+  shell!: string;
   mainProgram: () => void;
 
   constructor() {
@@ -152,7 +152,7 @@ class Omelette extends EventEmitter<any> {
 
   next(handler: () => void) {
     if (typeof handler === 'function') {
-      this.mainProgram = handler;
+      return this.mainProgram = handler;
     }
   }
 
@@ -232,12 +232,12 @@ class Omelette extends EventEmitter<any> {
   checkInstall() {
     if (this.install) {
       console.log(this.generateCompletionCode());
-      return process.exit();
+      process.exit();
     }
     
     if (this.installFish) {
       console.log(this.generateCompletionCodeFish());
-      return process.exit();
+      process.exit();
     }
   }
 
@@ -276,7 +276,7 @@ class Omelette extends EventEmitter<any> {
     return '';
   }
 
-  getCompletionBlock(): string {
+  getCompletionBlock() {
     let command: string | undefined;
     
     switch (this.shell) {
@@ -295,8 +295,6 @@ class Omelette extends EventEmitter<any> {
     if (command) {
       return `\n# begin ${this.program} completion\n${command}\n# end ${this.program} completion\n`;
     }
-    
-    return '';
   }
 
   setupShellInitFile(initFile: string = this.getDefaultShellInitFile()) {
@@ -318,7 +316,7 @@ class Omelette extends EventEmitter<any> {
     }
     
     // For every shell, write completion block to the init file
-    fs.appendFileSync(initFile, this.getCompletionBlock());
+    fs.appendFileSync(initFile, this.getCompletionBlock()!);
     
     return process.exit();
   }
@@ -331,7 +329,7 @@ class Omelette extends EventEmitter<any> {
     
     // For every shell, rewrite the init file
     if (fs.existsSync(initFile)) {
-      const cleanedInitFile = removeSubstring(fs.readFileSync(initFile, 'utf8'), this.getCompletionBlock());
+      const cleanedInitFile = removeSubstring(fs.readFileSync(initFile, 'utf8'), this.getCompletionBlock()!);
       fs.writeFileSync(initFile, cleanedInitFile);
     }
     
@@ -392,18 +390,16 @@ function omelette(template: string | TemplateStringsArray, ...args: omelette.Tem
   
   const _omelette = new Omelette();
   _omelette.setProgram(program);
-  // Use type assertion to satisfy the compiler
-  _omelette.setFragments.apply(_omelette, fragments);
+  _omelette.setFragments(...fragments);
   _omelette.checkInstall();
   
   for (let index = 0; index < callbacks.length; index++) {
     const callback = callbacks[index];
     const fragment = `arg${index}`;
     
-    ((callback) => {
-      return _omelette.on(fragment, function(this: Omelette, data: omelette.CallbackValue) {
-        const result = callback instanceof Array ? callback : (callback as omelette.Callback)(data);
-        return this.reply(result || []);
+    (function (callback) {
+      return _omelette.on(fragment, function(this: Omelette, ...args) {
+        return this.reply((callback instanceof Array ? callback : (callback as omelette.Callback)(...args))!);
       });
     })(callback);
   }

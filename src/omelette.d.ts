@@ -48,15 +48,15 @@ declare class Omelette extends EventEmitter<any> {
     setFragments(...fragments: string[]): void;
     generate(): undefined;
     reply(words?: string[] | Promise<string[]>): void | Promise<void>;
-    next(handler: () => void): void;
+    next(handler: () => void): (() => void) | undefined;
     tree(objectTree?: omelette.TreeValue): this;
     generateCompletionCode(): string;
     generateCompletionCodeFish(): string;
     generateTestAliases(): string;
-    checkInstall(): undefined;
+    checkInstall(): void;
     getActiveShell(): string;
     getDefaultShellInitFile(): string;
-    getCompletionBlock(): string;
+    getCompletionBlock(): string | undefined;
     setupShellInitFile(initFile?: string): never;
     cleanupShellInitFile(initFile?: string): never;
     init(): void;

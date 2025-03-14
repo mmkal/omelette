@@ -36,7 +36,7 @@
     "typescript": "5.8.2"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "./build.sh",
     "test": "tsc -p test"
   }
 }
