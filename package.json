@@ -23,10 +23,20 @@
     "node": ">=0.8.0"
   },
   "main": "./src/omelette.js",
+  "types": "./src/omelette.d.ts",
   "homepage": "https://github.com/f/omelette",
   "bugs": "https://github.com/f/omelette/issues",
   "repository": {
     "type": "git",
     "url": "git://github.com/f/omelette.git"
+  },
+  "packageManager": "pnpm@10.6.2",
+  "devDependencies": {
+    "@types/node": "22.13.10",
+    "typescript": "5.8.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc -p test"
   }
 }
